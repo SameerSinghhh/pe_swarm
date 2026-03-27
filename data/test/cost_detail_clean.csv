@@ -1,0 +1,97 @@
+period,amount,cost_category,cost_subcategory,department
+2025-04,285000,COGS,Hosting,Engineering
+2025-04,252000,COGS,Customer Success,Customer Success
+2025-04,420000,SGA,Sales Salaries,Sales
+2025-04,245000,SGA,Marketing,Marketing
+2025-04,105000,SGA,Rent,General & Admin
+2025-04,52000,SGA,Legal,General & Admin
+2025-04,360000,R&D,Engineering Salaries,Engineering
+2025-04,72000,R&D,Tools,Engineering
+2025-05,295000,COGS,Hosting,Engineering
+2025-05,264000,COGS,Customer Success,Customer Success
+2025-05,435000,SGA,Sales Salaries,Sales
+2025-05,252000,SGA,Marketing,Marketing
+2025-05,107000,SGA,Rent,General & Admin
+2025-05,54000,SGA,Legal,General & Admin
+2025-05,372000,R&D,Engineering Salaries,Engineering
+2025-05,75000,R&D,Tools,Engineering
+2025-06,308000,COGS,Hosting,Engineering
+2025-06,278000,COGS,Customer Success,Customer Success
+2025-06,450000,SGA,Sales Salaries,Sales
+2025-06,260000,SGA,Marketing,Marketing
+2025-06,110000,SGA,Rent,General & Admin
+2025-06,55000,SGA,Legal,General & Admin
+2025-06,385000,R&D,Engineering Salaries,Engineering
+2025-06,78000,R&D,Tools,Engineering
+2025-07,325000,COGS,Hosting,Engineering
+2025-07,292000,COGS,Customer Success,Customer Success
+2025-07,465000,SGA,Sales Salaries,Sales
+2025-07,268000,SGA,Marketing,Marketing
+2025-07,112000,SGA,Rent,General & Admin
+2025-07,56000,SGA,Legal,General & Admin
+2025-07,398000,R&D,Engineering Salaries,Engineering
+2025-07,80000,R&D,Tools,Engineering
+2025-08,340000,COGS,Hosting,Engineering
+2025-08,308000,COGS,Customer Success,Customer Success
+2025-08,480000,SGA,Sales Salaries,Sales
+2025-08,276000,SGA,Marketing,Marketing
+2025-08,114000,SGA,Rent,General & Admin
+2025-08,58000,SGA,Legal,General & Admin
+2025-08,412000,R&D,Engineering Salaries,Engineering
+2025-08,82000,R&D,Tools,Engineering
+2025-09,358000,COGS,Hosting,Engineering
+2025-09,322000,COGS,Customer Success,Customer Success
+2025-09,495000,SGA,Sales Salaries,Sales
+2025-09,285000,SGA,Marketing,Marketing
+2025-09,116000,SGA,Rent,General & Admin
+2025-09,60000,SGA,Legal,General & Admin
+2025-09,425000,R&D,Engineering Salaries,Engineering
+2025-09,85000,R&D,Tools,Engineering
+2025-10,375000,COGS,Hosting,Engineering
+2025-10,338000,COGS,Customer Success,Customer Success
+2025-10,510000,SGA,Sales Salaries,Sales
+2025-10,292000,SGA,Marketing,Marketing
+2025-10,118000,SGA,Rent,General & Admin
+2025-10,62000,SGA,Legal,General & Admin
+2025-10,438000,R&D,Engineering Salaries,Engineering
+2025-10,88000,R&D,Tools,Engineering
+2025-11,392000,COGS,Hosting,Engineering
+2025-11,355000,COGS,Customer Success,Customer Success
+2025-11,525000,SGA,Sales Salaries,Sales
+2025-11,300000,SGA,Marketing,Marketing
+2025-11,120000,SGA,Rent,General & Admin
+2025-11,64000,SGA,Legal,General & Admin
+2025-11,450000,R&D,Engineering Salaries,Engineering
+2025-11,90000,R&D,Tools,Engineering
+2025-12,410000,COGS,Hosting,Engineering
+2025-12,372000,COGS,Customer Success,Customer Success
+2025-12,540000,SGA,Sales Salaries,Sales
+2025-12,308000,SGA,Marketing,Marketing
+2025-12,122000,SGA,Rent,General & Admin
+2025-12,65000,SGA,Legal,General & Admin
+2025-12,462000,R&D,Engineering Salaries,Engineering
+2025-12,92000,R&D,Tools,Engineering
+2026-01,428000,COGS,Hosting,Engineering
+2026-01,388000,COGS,Customer Success,Customer Success
+2026-01,555000,SGA,Sales Salaries,Sales
+2026-01,316000,SGA,Marketing,Marketing
+2026-01,123000,SGA,Rent,General & Admin
+2026-01,66000,SGA,Legal,General & Admin
+2026-01,475000,R&D,Engineering Salaries,Engineering
+2026-01,95000,R&D,Tools,Engineering
+2026-02,445000,COGS,Hosting,Engineering
+2026-02,405000,COGS,Customer Success,Customer Success
+2026-02,570000,SGA,Sales Salaries,Sales
+2026-02,325000,SGA,Marketing,Marketing
+2026-02,124000,SGA,Rent,General & Admin
+2026-02,67000,SGA,Legal,General & Admin
+2026-02,488000,R&D,Engineering Salaries,Engineering
+2026-02,98000,R&D,Tools,Engineering
+2026-03,468000,COGS,Hosting,Engineering
+2026-03,416000,COGS,Customer Success,Customer Success
+2026-03,595000,SGA,Sales Salaries,Sales
+2026-03,340000,SGA,Marketing,Marketing
+2026-03,125000,SGA,Rent,General & Admin
+2026-03,68000,SGA,Legal,General & Admin
+2026-03,510000,R&D,Engineering Salaries,Engineering
+2026-03,102000,R&D,Tools,Engineering

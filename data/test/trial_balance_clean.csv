@@ -1,0 +1,33 @@
+account_number,account_name,account_type,debit,credit
+1000,Cash and Equivalents,Asset,6750000,0
+1100,Accounts Receivable,Asset,4200000,0
+1200,Inventory,Asset,95000,0
+1300,Prepaid Expenses,Asset,530000,0
+1400,Other Current Assets,Asset,175000,0
+1500,Property Plant and Equipment,Asset,2800000,0
+1510,Accumulated Depreciation,Asset,0,1250000
+1600,Intangible Assets,Asset,3950000,0
+1700,Other Non-Current Assets,Asset,300000,0
+2000,Accounts Payable,Liability,0,1350000
+2100,Accrued Liabilities,Liability,0,1900000
+2200,Short-Term Debt,Liability,0,500000
+2300,Deferred Revenue,Liability,0,2600000
+2400,Long-Term Debt,Liability,0,3000000
+2500,Other Non-Current Liabilities,Liability,0,400000
+3000,Common Stock,Equity,0,1500000
+3100,Additional Paid-in Capital,Equity,0,3200000
+3200,Retained Earnings,Equity,0,2450000
+4000,Subscription Revenue,Revenue,0,2800000
+4100,Professional Services Revenue,Revenue,0,420000
+4200,Support and Maintenance Revenue,Revenue,0,150000
+4300,Training Revenue,Revenue,0,30000
+5000,Hosting Costs,COGS,468000,0
+5100,Customer Success,COGS,416000,0
+6000,Sales Salaries,SGA,595000,0
+6100,Marketing Expense,SGA,340000,0
+6200,Engineering Salaries,R&D,510000,0
+6300,Engineering Tools,R&D,102000,0
+6400,Office Rent,SGA,125000,0
+6500,Legal and Professional,SGA,68000,0
+6600,Insurance,SGA,45000,0
+6700,Other G&A,SGA,81000,0

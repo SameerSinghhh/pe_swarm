@@ -1,0 +1,49 @@
+period,revenue,product,units_sold,unit_price
+2025-04,1260000,Platform License,42,30000
+2025-04,270000,Professional Services,18,15000
+2025-04,162000,Support & Maintenance,54,3000
+2025-04,54000,Training,18,3000
+2025-05,1380000,Platform License,46,30000
+2025-05,285000,Professional Services,19,15000
+2025-05,174000,Support & Maintenance,58,3000
+2025-05,57000,Training,19,3000
+2025-06,1500000,Platform License,50,30000
+2025-06,315000,Professional Services,21,15000
+2025-06,189000,Support & Maintenance,63,3000
+2025-06,63000,Training,21,3000
+2025-07,1620000,Platform License,54,30000
+2025-07,330000,Professional Services,22,15000
+2025-07,204000,Support & Maintenance,68,3000
+2025-07,66000,Training,22,3000
+2025-08,1740000,Platform License,58,30000
+2025-08,345000,Professional Services,23,15000
+2025-08,216000,Support & Maintenance,72,3000
+2025-08,72000,Training,24,3000
+2025-09,1860000,Platform License,62,30000
+2025-09,375000,Professional Services,25,15000
+2025-09,231000,Support & Maintenance,77,3000
+2025-09,75000,Training,25,3000
+2025-10,1950000,Platform License,65,30000
+2025-10,390000,Professional Services,26,15000
+2025-10,243000,Support & Maintenance,81,3000
+2025-10,78000,Training,26,3000
+2025-11,2040000,Platform License,68,30000
+2025-11,405000,Professional Services,27,15000
+2025-11,255000,Support & Maintenance,85,3000
+2025-11,81000,Training,27,3000
+2025-12,2130000,Platform License,71,30000
+2025-12,420000,Professional Services,28,15000
+2025-12,267000,Support & Maintenance,89,3000
+2025-12,84000,Training,28,3000
+2026-01,2220000,Platform License,74,30000
+2026-01,435000,Professional Services,29,15000
+2026-01,279000,Support & Maintenance,93,3000
+2026-01,87000,Training,29,3000
+2026-02,2310000,Platform License,77,30000
+2026-02,450000,Professional Services,30,15000
+2026-02,291000,Support & Maintenance,97,3000
+2026-02,90000,Training,30,3000
+2026-03,2400000,Platform License,80,30000
+2026-03,465000,Professional Services,31,15000
+2026-03,303000,Support & Maintenance,101,3000
+2026-03,93000,Training,31,3000
