@@ -14,15 +14,20 @@ import pandas as pd
 from analysis.types import Favorability
 
 
-def safe_div(numerator: float, denominator: float) -> Optional[float]:
-    """Safe division. Returns None if denominator is 0, NaN, or None."""
-    if denominator is None or denominator == 0:
+def safe_div(numerator, denominator) -> Optional[float]:
+    """Safe division. Returns None if either value is None, 0 denom, NaN, or inf."""
+    if numerator is None or denominator is None:
         return None
-    if isinstance(denominator, float) and (math.isnan(denominator) or math.isinf(denominator)):
+    if denominator == 0:
         return None
-    if isinstance(numerator, float) and (math.isnan(numerator) or math.isinf(numerator)):
+    try:
+        n = float(numerator)
+        d = float(denominator)
+    except (TypeError, ValueError):
         return None
-    return numerator / denominator
+    if math.isnan(n) or math.isinf(n) or math.isnan(d) or math.isinf(d):
+        return None
+    return n / d
 
 
 def safe_pct(numerator: float, denominator: float) -> Optional[float]:
