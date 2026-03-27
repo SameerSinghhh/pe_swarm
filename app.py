@@ -483,44 +483,40 @@ if analysis.trends:
 st.divider()
 st.header("④ Export")
 
-# Build summary JSON
-export_data = {
-    "analysis_date": date.today().isoformat(),
-    "modules_run": analysis.modules_run,
-    "data_sources": {k: {"doc_type": v.doc_type, "rows": len(v.df), "quality": v.quality_score} for k, v in ingested.items()},
-}
+from analysis.excel_export import export_to_excel
+from openpyxl import load_workbook
+import io
 
-if analysis.ebitda_bridges and analysis.ebitda_bridges.mom:
-    b = analysis.ebitda_bridges.mom
-    export_data["ebitda_bridge_mom"] = {
-        "base_ebitda": b.base_ebitda,
-        "current_ebitda": b.current_ebitda,
-        "total_change": b.total_change,
-        "components": {c.name: c.value for c in b.components},
-        "verified": b.is_verified,
-    }
+# Generate Excel in memory
+excel_buffer = io.BytesIO()
+company = next(iter(ingested.values())).company_name if ingested else ""
+export_to_excel(analysis, excel_buffer, ingested=ingested, company_name=company)
+excel_bytes = excel_buffer.getvalue()
 
-if analysis.margins and analysis.margins.periods:
-    m = analysis.margins.periods[-1]
-    export_data["latest_margins"] = {
-        "gross_margin_pct": m.gross_margin_pct,
-        "ebitda_margin_pct": m.ebitda_margin_pct,
-        "revenue_growth_mom": m.revenue_growth_mom,
-        "revenue_growth_yoy": m.revenue_growth_yoy,
-    }
+# ── Excel Preview ──
+st.subheader("Excel Preview")
 
-if analysis.trends:
-    export_data["trend_flags"] = [
-        {"metric": f.metric, "type": f.flag_type.value, "severity": f.severity.value, "detail": f.detail}
-        for f in analysis.trends.flags
-    ]
+preview_wb = load_workbook(io.BytesIO(excel_bytes))
+preview_tabs = st.tabs(preview_wb.sheetnames)
 
-col1, col2 = st.columns(2)
-with col1:
-    st.download_button("📥 Download Analysis JSON",
-                       json.dumps(export_data, indent=2, default=str),
-                       file_name=f"analysis_{date.today().isoformat()}.json",
-                       mime="application/json", use_container_width=True)
-with col2:
-    with st.expander("Preview JSON"):
-        st.json(export_data)
+for i, sheet_name in enumerate(preview_wb.sheetnames):
+    with preview_tabs[i]:
+        ws = preview_wb[sheet_name]
+        rows = []
+        for row in ws.iter_rows(values_only=True):
+            rows.append([str(v) if v is not None else "" for v in row])
+        if rows:
+            preview_df = pd.DataFrame(rows[1:], columns=rows[0]) if len(rows) > 1 else pd.DataFrame(rows)
+            st.dataframe(preview_df, use_container_width=True, hide_index=True, height=350)
+        else:
+            st.info("Empty sheet")
+
+st.divider()
+
+st.download_button(
+    "📥 Download Excel Workbook",
+    excel_bytes,
+    file_name=f"analysis_{date.today().isoformat()}.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    use_container_width=True,
+)
