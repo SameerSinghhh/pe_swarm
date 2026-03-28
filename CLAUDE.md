@@ -2,27 +2,53 @@
 
 ## Vision
 
-A platform that replicates and accelerates the entire PE value creation analytical workflow.
-PE firms upload messy financial data → the system ingests, normalizes, analyzes, and ultimately
-identifies where value needs to be created — faster and more thoroughly than a team of analysts.
+A platform that replicates the entire PE value creation analytical workflow.
+Upload messy financial data → ingest → normalize → analyze → gather external context →
+identify where value needs to be created. Faster and more thorough than a team of analysts.
 
-## Current State: Data Ingestion (COMPLETE)
+## Roadmap
 
-Universal financial data ingestion that auto-detects and normalizes any financial document.
+### Phase 1: Data Ingestion ✅ COMPLETE
+Universal ingestion: any file format, any document type, auto-classified, normalized, validated.
+8 document types, 3 formats (CSV/Excel/PDF), quality scoring, audit trail.
 
-## Next Step: Analysis Engine (IN PROGRESS)
+### Phase 2A: Backward-Looking Analysis ✅ COMPLETE
+Deterministic math on ingested data. No assumptions, 100% accurate.
+EBITDA bridges, variance analysis, margins, working capital, FCF, revenue analytics, trends.
+238 tests, 0 failures. Excel export with 9 formatted tabs.
 
-Build all the deterministic math that PE analysts do monthly. Pure math, no AI, 100% accurate.
-This is the foundation that future AI agents will reason on top of.
+### Phase 2B: Remaining Analysis ← NEXT
+Still exact math on existing data:
+- Trial balance / GL analysis (vendor spend, cost center trends, account-level)
+- Cost detail analysis (cost-out tracking, headcount productivity, dept margins)
+- Segment P&Ls (build per-product/segment P&Ls from revenue + cost detail)
+- LTM rollups (trailing 12-month revenue, EBITDA, FCF)
+- Operating leverage (cost growth vs revenue growth)
+- Rule of 40 (SaaS: growth % + margin %)
+- Cross-document ratios (asset turnover, ROIC, working capital as % of revenue)
 
-## Future Steps (NOT YET STARTED)
+### Phase 3: Assumption-Driven Analysis ← AFTER 2B
+Analyst inputs assumptions, system does all the math:
+- Forecasting framework (growth rates, margin targets → projected P&L)
+- Scenario modeling (base/upside/downside with toggleable inputs)
+- Initiative sizing ("if DSO improves 5 days → $X freed" — math exact, 5 days is the assumption)
+- LBO refresh (exit multiple + timing → IRR/MOIC)
+- Sensitivity tables (what happens if growth is 5% vs 10% vs 15%)
 
-- **AI Agent Swarms**: Multiple agents analyzing the same data from different angles (Revenue Agent,
-  Margin Agent, Working Capital Agent, AI Transformation Agent) that argue with each other and
-  synthesize into a prioritized value creation plan
-- **AI Commentary**: PE analyst-style narrative on findings
-- **Board Deck Generation**: Automated monthly reporting packages
-- **Portfolio View**: Cross-company analysis across the entire portfolio
+### Phase 4: External Data ← AFTER 3
+Pull in context the company's data alone can't provide:
+- Peer benchmarking (public comp data: margins, growth, multiples)
+- Industry benchmarks (median DSO, margin ranges by sector)
+- Market/macro context (rates, industry trends, relevant news)
+- Comparable transactions (recent deal multiples)
+
+### Phase 5: AI Commentary + Agent Swarms ← AFTER 4
+Only after we have THE FULL PICTURE (all analysis + assumptions + external data):
+- Revenue Agent, Margin Agent, Working Capital Agent, AI Transformation Agent
+- Each analyzes from a different angle, they argue and synthesize
+- Prioritized value creation plan with sized EBITDA impact
+- PE analyst-style narrative on every finding
+- Board deck generation
 
 ---
 
@@ -30,102 +56,62 @@ This is the foundation that future AI agents will reason on top of.
 
 ```
 pe_swarm/
-├── core/
-│   ├── ingest.py          ← Universal ingestion orchestrator
-│   ├── classify.py        ← Document type classification (heuristic + AI)
-│   ├── registry.py        ← Schema registry (auto-discovery)
-│   ├── readers.py         ← File reading (CSV/Excel/PDF)
-│   ├── normalize.py       ← AI normalization engine (Claude API)
-│   ├── validate.py        ← Validation with audit trail
-│   ├── cleaning.py        ← Shared utilities
-│   ├── profiler.py        ← Data profiling + quality scoring
-│   ├── fallback.py        ← AI code-gen fallback (sandboxed)
-│   ├── result.py          ← NormalizedResult dataclass
-│   └── schemas/           ← One file per document type
-│       ├── base.py                ← Abstract DocumentSchema
-│       ├── income_statement.py
-│       ├── balance_sheet.py
-│       ├── cash_flow.py
-│       ├── trial_balance.py
-│       ├── revenue_detail.py
-│       ├── cost_detail.py
-│       ├── working_capital.py
-│       └── kpi_operational.py
-├── data/
+├── core/                    ← Data ingestion (Phase 1)
+│   ├── ingest.py            Universal orchestrator
+│   ├── classify.py          Document type classification
+│   ├── registry.py          Schema registry
+│   ├── readers.py           File reading (CSV/Excel/PDF)
+│   ├── normalize.py         AI normalization (Claude)
+│   ├── validate.py          Validation + audit trail
+│   ├── cleaning.py          Shared utilities
+│   ├── profiler.py          Data profiling + quality scoring
+│   ├── fallback.py          AI code-gen fallback
+│   ├── result.py            NormalizedResult dataclass
+│   └── schemas/             8 document type schemas
+│
+├── analysis/                ← Analysis engine (Phase 2)
+│   ├── types.py             Result dataclasses + enums
+│   ├── utils.py             safe_div, favorability, period helpers
+│   ├── ebitda_bridge.py     EBITDA bridges (MoM, Budget, PY)
+│   ├── variance.py          Three-way variance on every P&L line
+│   ├── margins.py           All margin % and growth rates
+│   ├── working_capital.py   DSO/DPO/DIO/CCC, WC changes, AR aging
+│   ├── fcf.py               FCF, cash conversion, leverage
+│   ├── revenue_analytics.py Concentration, price/volume/mix, KPI trends
+│   ├── trends.py            Auto-flag anomalies, declines, compression
+│   ├── excel_export.py      9-tab formatted Excel workbook
+│   └── engine.py            Orchestrator
+│
+├── tests/                   ← 238 tests, 0 failures
+│   ├── test_all.py          179 analysis math tests
+│   └── test_excel.py        59 Excel verification tests
+│
+├── data/                    ← Test data
 │   ├── sample_pl.csv
-│   └── test/              ← 14 test files across all types and formats
-├── app.py                 ← Streamlit UI (before/after view)
-├── main.py                ← CLI entry point
+│   └── test/                14 test files across all types
+│
+├── app.py                   ← Streamlit UI
+├── main.py                  ← CLI
 ├── requirements.txt
-└── .env                   ← ANTHROPIC_API_KEY goes here
+└── .env
 ```
 
-## Ingestion Pipeline
+## Key Principles
 
-```
-File (CSV/Excel/PDF)
-  → read_file()           Read raw data, handle encoding, select Excel sheet
-  → classify_document()   Auto-detect document type (8 types supported)
-  → profile_raw()         Column stats, temporal coverage, anomaly detection
-  → normalize             Fast path (no AI) or AI mapping or code-gen fallback
-  → validate()            Accounting identities, temporal checks, reasonableness
-  → profile_normalized()  Quality score (completeness/consistency/coverage/reasonableness)
-  → NormalizedResult      Clean DataFrame + quality_score + audit_trail
-```
-
-## 8 Supported Document Types
-
-1. **Income Statement / P&L** — Revenue, COGS, OpEx, EBITDA. Validation: GP = Rev - COGS
-2. **Balance Sheet** — Assets, liabilities, equity. Validation: A = L + E
-3. **Cash Flow Statement** — Operating, investing, financing. Validation: net change = ops + inv + fin
-4. **Trial Balance / GL** — Account-level debits and credits. Validation: debits = credits
-5. **Revenue Detail** — By customer, product, segment, geography
-6. **Cost Detail** — By department, vendor, category
-7. **Working Capital / AR-AP Aging** — Aging buckets, DSO/DPO/DIO
-8. **KPI / Operational** — SaaS metrics, manufacturing KPIs, unit economics
-
-## Analysis Engine (Next to Build)
-
-All deterministic — pure math on ingested data, no AI needed, 100% accurate:
-
-1. **EBITDA Bridge** — MoM, vs Budget, vs PY with price/volume/mix decomposition
-2. **Variance Analysis** — Three-way (actual vs budget vs PY) on every line item
-3. **Working Capital Analytics** — DSO/DPO/DIO trending, cash conversion cycle, cash impact
-4. **FCF Analysis** — Free cash flow calculation, cash conversion ratio
-5. **Revenue Analytics** — Concentration, cohort retention, NRR/GRR
-6. **Cost Analytics** — Cost-out tracking, headcount productivity
-7. **Trend Detection** — Automatic flagging of inflection points, threshold crossings
-8. **KPI Scoring** — Traffic light status against targets
-
-## Key Design Principles
-
-- Each document type is a self-registering schema class
-- Heuristic classification first, AI only when ambiguous
-- Fast path skips AI for already-standardized files
-- Derive fields rather than require all (GP = Rev - COGS)
-- Full audit trail of every transformation
-- Quality scoring so downstream agents know data trustworthiness
-- Code-gen fallback for truly weird files (Claude writes custom Python)
-- All analysis math is deterministic — no guessing, no assumptions
+- All backward-looking analysis is deterministic math — no assumptions, no AI
+- Forward-looking analysis clearly separates math (exact) from assumptions (analyst inputs)
+- External data supplements but never replaces the company's own data
+- Commentary and value creation spotting only happens after the full picture is assembled
+- Every calculation is tested and verified (238 tests)
+- Excel output is the primary deliverable (analysts live in Excel)
 
 ## Running
 
 ```bash
-# CLI
-python main.py                                    # Sample P&L
-python main.py data/test/quickbooks_export.csv    # Any file
-
-# UI
-streamlit run app.py
-
-# Dependencies
-pip install anthropic pandas streamlit python-dotenv openpyxl pdfplumber
+streamlit run app.py          # Web UI
+python main.py                # CLI
 ```
 
-## Environment
+## Dependencies
 
-```
-ANTHROPIC_API_KEY=sk-ant-...   # Required for AI normalization of messy files
-```
-
-Note: Clean/standardized files work without an API key (fast path).
+anthropic, pandas, streamlit, python-dotenv, openpyxl, pdfplumber
