@@ -506,7 +506,12 @@ for i, sheet_name in enumerate(preview_wb.sheetnames):
         for row in ws.iter_rows(values_only=True):
             rows.append([str(v) if v is not None else "" for v in row])
         if rows:
-            preview_df = pd.DataFrame(rows[1:], columns=rows[0]) if len(rows) > 1 else pd.DataFrame(rows)
+            # Use generic column names to avoid duplicate header issues
+            num_cols = max(len(r) for r in rows)
+            col_names = [f"Col {j+1}" for j in range(num_cols)]
+            # Pad short rows
+            padded = [r + [""] * (num_cols - len(r)) for r in rows]
+            preview_df = pd.DataFrame(padded, columns=col_names)
             st.dataframe(preview_df, use_container_width=True, hide_index=True, height=350)
         else:
             st.info("Empty sheet")
