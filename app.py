@@ -170,6 +170,7 @@ if analysis.margins: tab_names.append("Margins & Growth")
 if analysis.variance: tab_names.append("Variance Analysis")
 if analysis.working_capital: tab_names.append("Working Capital")
 if analysis.fcf: tab_names.append("FCF & Leverage")
+if analysis.ltm: tab_names.append("LTM & Rule of 40")
 if analysis.revenue_analytics: tab_names.append("Revenue Analytics")
 if analysis.trends: tab_names.append("Trend Flags")
 
@@ -383,6 +384,40 @@ if analysis.fcf:
                 "ND/EBITDA": f"{p.net_debt_to_ltm_ebitda:.1f}x" if p.net_debt_to_ltm_ebitda else "",
             })
         st.dataframe(pd.DataFrame(fcf_rows), use_container_width=True, hide_index=True)
+
+    tab_idx += 1
+
+
+# ── LTM & Rule of 40 Tab ──
+if analysis.ltm:
+    with tabs[tab_idx]:
+        ltm = analysis.ltm
+
+        st.subheader(f"Last Twelve Months — as of {ltm.as_of_period}")
+        st.caption(f"{ltm.months_included} months included")
+
+        lc1, lc2, lc3, lc4 = st.columns(4)
+        with lc1:
+            st.metric("LTM Revenue", f"${ltm.ltm_revenue:,.0f}" if ltm.ltm_revenue else "N/A")
+        with lc2:
+            st.metric("LTM EBITDA", f"${ltm.ltm_ebitda:,.0f}" if ltm.ltm_ebitda else "N/A")
+        with lc3:
+            st.metric("LTM EBITDA Margin", f"{ltm.ltm_ebitda_margin_pct:.1f}%" if ltm.ltm_ebitda_margin_pct else "N/A")
+        with lc4:
+            st.metric("LTM Rev Growth YoY", f"{ltm.ltm_revenue_growth_yoy:+.1f}%" if ltm.ltm_revenue_growth_yoy else "N/A")
+
+        st.divider()
+        st.subheader("Rule of 40")
+        if ltm.rule_of_40 is not None:
+            r40_color = "green" if ltm.rule_of_40 >= 40 else "red"
+            st.markdown(f"### :{r40_color}[{ltm.rule_of_40:.1f}]")
+            st.caption(f"Revenue Growth ({ltm.ltm_revenue_growth_yoy:+.1f}%) + EBITDA Margin ({ltm.ltm_ebitda_margin_pct:.1f}%) = {ltm.rule_of_40:.1f}")
+            if ltm.rule_of_40 >= 40:
+                st.success("Above 40 — healthy SaaS efficiency")
+            else:
+                st.warning(f"Below 40 — need {40 - ltm.rule_of_40:.1f} points to reach target")
+        else:
+            st.info("Rule of 40 requires 13+ months of data for YoY growth calculation")
 
     tab_idx += 1
 

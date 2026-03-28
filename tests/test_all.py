@@ -723,7 +723,7 @@ def test_real_data():
         data[doc_type] = ingest_file(path)
 
     r = run_analysis(data)
-    check("Real: 7 modules", len(r.modules_run) == 7, f"got {len(r.modules_run)}: {r.modules_run}")
+    check("Real: 8 modules", len(r.modules_run) == 8, f"got {len(r.modules_run)}: {r.modules_run}")
     check("Real: 0 warnings", len(r.warnings) == 0, f"got: {r.warnings}")
 
     # Verify EBITDA bridge math

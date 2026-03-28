@@ -13,6 +13,7 @@ from analysis.types import AnalysisResult
 from analysis.ebitda_bridge import compute_ebitda_bridges
 from analysis.variance import compute_variance
 from analysis.margins import compute_margins
+from analysis.ltm import compute_ltm
 from analysis.working_capital import compute_working_capital
 from analysis.fcf import compute_fcf
 from analysis.revenue_analytics import compute_revenue_analytics
@@ -77,6 +78,16 @@ def run_analysis(
         except Exception as e:
             warnings.append(f"Margins failed: {e}")
 
+    # ── Module 8: LTM & Rule of 40 ──
+    ltm = None
+    if income_df is not None:
+        try:
+            ltm = compute_ltm(income_df)
+            if ltm:
+                modules_run.append("ltm")
+        except Exception as e:
+            warnings.append(f"LTM failed: {e}")
+
     # ── Module 4: Working Capital ──
     wc = None
     if working_capital_df is not None or (balance_sheet_df is not None and income_df is not None):
@@ -122,6 +133,7 @@ def run_analysis(
         fcf=fcf_result,
         revenue_analytics=rev_analytics,
         trends=trend_result,
+        ltm=ltm,
         modules_run=modules_run,
         warnings=warnings,
     )

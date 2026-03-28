@@ -44,7 +44,7 @@ for doc_type, path in [
     data[doc_type] = ingest_file(path)
 
 analysis = run_analysis(data)
-check("7 modules", len(analysis.modules_run) == 7, f"got {len(analysis.modules_run)}")
+check("8 modules", len(analysis.modules_run) == 8, f"got {len(analysis.modules_run)}")
 check("0 warnings", len(analysis.warnings) == 0, str(analysis.warnings))
 
 # ── 2. Generate Excel ──
@@ -58,8 +58,8 @@ check("Excel not empty", len(excel_bytes) > 1000, f"{len(excel_bytes)} bytes")
 print("\n── Test 3: Sheet structure ──")
 wb = load_workbook(io.BytesIO(excel_bytes))
 expected = ["Summary", "EBITDA Bridges", "Variance Analysis", "Margins & Growth",
-            "Working Capital", "FCF & Leverage", "Revenue Analytics", "Trend Flags", "Raw Data"]
-check("9 sheets", len(wb.sheetnames) == 9, str(wb.sheetnames))
+            "Working Capital", "FCF & Leverage", "LTM & Rule of 40", "Revenue Analytics", "Trend Flags", "Raw Data"]
+check("10 sheets", len(wb.sheetnames) == 10, str(wb.sheetnames))
 for s in expected:
     check(f"Sheet '{s}' exists", s in wb.sheetnames)
 

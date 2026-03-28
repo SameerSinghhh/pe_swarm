@@ -225,6 +225,23 @@ class TrendResult:
     flags: list[TrendFlag]
 
 
+# ── Module 8: LTM & SaaS Metrics ──
+
+@dataclass
+class LTMMetrics:
+    """Last Twelve Months rollups and SaaS efficiency metrics."""
+    as_of_period: str
+    ltm_revenue: Optional[float]
+    ltm_cogs: Optional[float]
+    ltm_gross_profit: Optional[float]
+    ltm_ebitda: Optional[float]
+    ltm_gross_margin_pct: Optional[float]
+    ltm_ebitda_margin_pct: Optional[float]
+    ltm_revenue_growth_yoy: Optional[float]      # LTM vs prior LTM
+    rule_of_40: Optional[float]                   # revenue_growth_yoy + ebitda_margin
+    months_included: int = 0                       # how many months in the LTM (ideally 12)
+
+
 # ── Top-level Result ──
 
 @dataclass
@@ -237,5 +254,6 @@ class AnalysisResult:
     fcf: FCFResult | None = None
     revenue_analytics: RevenueAnalyticsResult | None = None
     trends: TrendResult | None = None
+    ltm: LTMMetrics | None = None
     modules_run: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)

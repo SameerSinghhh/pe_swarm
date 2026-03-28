@@ -93,6 +93,9 @@ def export_to_excel(
     if analysis.fcf:
         _write_fcf(wb, analysis.fcf)
 
+    if analysis.ltm:
+        _write_ltm(wb, analysis.ltm)
+
     if analysis.revenue_analytics:
         _write_revenue_analytics(wb, analysis.revenue_analytics)
 
@@ -369,6 +372,51 @@ def _write_margins(wb, margins):
         r += 1
 
     ws.freeze_panes = "B2"
+
+
+def _write_ltm(wb, ltm):
+    ws = wb.create_sheet("LTM & Rule of 40")
+    _set_col_widths(ws, {"A": 28, "B": 20})
+
+    r = 1
+    _section_row(ws, r, f"Last Twelve Months — as of {ltm.as_of_period}", 2)
+    r += 1
+    _header_row(ws, r, ["Metric", "Value"])
+    r += 1
+
+    rows = [
+        ("LTM Revenue", ltm.ltm_revenue, FMT_CURRENCY),
+        ("LTM COGS", ltm.ltm_cogs, FMT_CURRENCY),
+        ("LTM Gross Profit", ltm.ltm_gross_profit, FMT_CURRENCY),
+        ("LTM EBITDA", ltm.ltm_ebitda, FMT_CURRENCY),
+        ("LTM Gross Margin %", ltm.ltm_gross_margin_pct, FMT_PCT_RAW),
+        ("LTM EBITDA Margin %", ltm.ltm_ebitda_margin_pct, FMT_PCT_RAW),
+        ("LTM Revenue Growth YoY %", ltm.ltm_revenue_growth_yoy, FMT_PCT_RAW),
+        ("Months Included", ltm.months_included, FMT_INT),
+    ]
+
+    for label, val, fmt in rows:
+        _label_cell(ws, r, 1, label)
+        _data_cell(ws, r, 2, _val(val), fmt=fmt)
+        r += 1
+
+    r += 1
+    _section_row(ws, r, "SaaS Efficiency", 2)
+    r += 1
+    _label_cell(ws, r, 1, "Rule of 40")
+    if ltm.rule_of_40 is not None:
+        _data_cell(ws, r, 2, ltm.rule_of_40, fmt=FMT_PCT_RAW,
+                   bold=True, color_sign=True)
+    else:
+        _data_cell(ws, r, 2, "N/A (need 13+ months)")
+    r += 1
+    _label_cell(ws, r, 1, "  = Revenue Growth % + EBITDA Margin %", bold=False)
+    if ltm.ltm_revenue_growth_yoy is not None and ltm.ltm_ebitda_margin_pct is not None:
+        _data_cell(ws, r, 2, f"{ltm.ltm_revenue_growth_yoy:.1f}% + {ltm.ltm_ebitda_margin_pct:.1f}%")
+    r += 1
+    _label_cell(ws, r, 1, "  Target: > 40", bold=False)
+
+    ws.freeze_panes = "A3"
 
 
 def _write_working_capital(wb, wc):
