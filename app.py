@@ -63,6 +63,18 @@ with st.sidebar:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# HELPERS
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _fmt(val):
+    """Format dollar value without $ that breaks markdown."""
+    return f"${val:,.0f}"
+
+def _fmt_signed(val):
+    """Format signed dollar value."""
+    return f"+${val:,.0f}" if val >= 0 else f"-${abs(val):,.0f}"
+
+# ═══════════════════════════════════════════════════════════════════════════
 # MAIN
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -177,9 +189,20 @@ if run_btn or st.session_state.get("ready"):
         with mc[4]: st.metric("MOIC", f"{model.returns.moic:.2f}x")
         with mc[5]: st.metric("IRR", f"{model.returns.irr:.0%}" if model.returns.irr else "—")
 
-    # Excel download right here
+    # Excel download — use original ingested quality scores, combined data for content
     buf = io.BytesIO()
-    export_to_excel(analysis, buf, ingested=model.combined_data, company_name=company)
+    # Copy quality scores from original ingested data to combined data for Excel
+    export_data = {}
+    for doc_type, nr in model.combined_data.items():
+        export_nr = NormalizedResult(
+            df=nr.df,
+            doc_type=nr.doc_type,
+            doc_type_name=nr.doc_type_name,
+            company_name=nr.company_name,
+            quality_score=ingested[doc_type].quality_score if doc_type in ingested else nr.quality_score,
+        )
+        export_data[doc_type] = export_nr
+    export_to_excel(analysis, buf, ingested=export_data, company_name=company)
     excel_bytes = buf.getvalue()
 
     st.download_button("📥 Download Full Excel Workbook", excel_bytes, file_name=f"{company}_{date.today()}.xlsx",
@@ -192,6 +215,7 @@ if run_btn or st.session_state.get("ready"):
     if analysis.variance: tab_names.append("Variance")
     if analysis.working_capital: tab_names.append("Working Capital")
     if analysis.fcf: tab_names.append("FCF")
+    if analysis.ltm: tab_names.append("LTM & Rule of 40")
     if analysis.revenue_analytics: tab_names.append("Revenue")
     if analysis.trends: tab_names.append("Flags")
     tab_names.append("Forecast")
@@ -207,11 +231,11 @@ if run_btn or st.session_state.get("ready"):
                 if not b: return
                 with col:
                     st.markdown(f"**{b.label}** ({b.base_period} → {b.current_period})")
-                    st.markdown(f"Starting: **${b.base_ebitda:,.0f}**")
+                    st.write(f"Starting: **{_fmt(b.base_ebitda)}**")
                     for c in b.components:
                         clr = "green" if c.value >= 0 else "red"
-                        st.markdown(f":{clr}[{c.name}: ${c.value:+,.0f}]")
-                    st.markdown(f"Ending: **${b.current_ebitda:,.0f}** (Δ ${b.total_change:+,.0f})")
+                        st.markdown(f":{clr}[{c.name}: {_fmt_signed(c.value)}]")
+                    st.write(f"Ending: **{_fmt(b.current_ebitda)}** (Δ {_fmt_signed(b.total_change)})")
                     st.caption("✅ Verified" if b.is_verified else "⚠️ Check")
             _bridge(eb.mom, cols[0])
             if eb.vs_budget and len(cols) > 1: _bridge(eb.vs_budget, cols[1])
@@ -247,6 +271,22 @@ if run_btn or st.session_state.get("ready"):
         with tabs[ti]:
             fcf_rows = [{"Period": p.period, "FCF": f"${p.free_cash_flow:,.0f}" if p.free_cash_flow else "", "Cash Conv": f"{p.cash_conversion_ratio:.0%}" if p.cash_conversion_ratio else "", "ND/EBITDA": f"{p.net_debt_to_ltm_ebitda:.1f}x" if p.net_debt_to_ltm_ebitda else ""} for p in analysis.fcf.periods]
             st.dataframe(pd.DataFrame(fcf_rows), use_container_width=True, hide_index=True)
+        ti += 1
+
+    if analysis.ltm:
+        with tabs[ti]:
+            l = analysis.ltm
+            lc1, lc2, lc3, lc4 = st.columns(4)
+            with lc1: st.metric("LTM Revenue", _fmt(l.ltm_revenue) if l.ltm_revenue else "—")
+            with lc2: st.metric("LTM EBITDA", _fmt(l.ltm_ebitda) if l.ltm_ebitda else "—")
+            with lc3: st.metric("EBITDA Margin", f"{l.ltm_ebitda_margin_pct:.1f}%" if l.ltm_ebitda_margin_pct else "—")
+            with lc4: st.metric("Rule of 40", f"{l.rule_of_40:.0f}" if l.rule_of_40 else "—")
+            st.caption(f"{l.months_included} months · as of {l.as_of_period}")
+            if l.rule_of_40 is not None:
+                if l.rule_of_40 >= 40:
+                    st.success(f"Growth {l.ltm_revenue_growth_yoy:.1f}% + Margin {l.ltm_ebitda_margin_pct:.1f}% = {l.rule_of_40:.1f}")
+                else:
+                    st.warning(f"Below threshold by {40 - l.rule_of_40:.1f} points")
         ti += 1
 
     if analysis.revenue_analytics:
@@ -310,32 +350,22 @@ if run_btn or st.session_state.get("ready"):
                 st.error(f"Research failed: {e}")
 
     if "research" in st.session_state:
+        import re
         brief = st.session_state["research"]
 
-        # Profile
-        if brief.profile and brief.profile.sub_sector and brief.profile.sub_sector != sector:
-            st.markdown(f"**Sub-sector:** {brief.profile.sub_sector}")
-        if brief.profile and brief.profile.business_description and "operating in" not in brief.profile.business_description:
-            st.markdown(f"*{brief.profile.business_description}*")
-        if brief.profile and brief.profile.key_competitive_factors:
-            st.caption(f"Key competitive factors: {', '.join(brief.profile.key_competitive_factors)}")
-
-        # Peer Comparison
+        # ── Peer Comparison Table ──
         if brief.peer_companies:
-            st.subheader("Peer Comparison")
-
-            # Build comparison table with company included
+            st.subheader("Peer Benchmarking")
             peer_rows = []
-            # Add the company first
             if analysis.margins and analysis.margins.periods:
                 m = analysis.margins.periods[-1]
                 ltm_rev = analysis.ltm.ltm_revenue if analysis.ltm else None
                 peer_rows.append({
-                    "Company": f"**{company}** (this company)",
+                    "Company": f"{company} ★",
                     "Revenue": f"${ltm_rev/1e6:.0f}M" if ltm_rev else "—",
                     "Gross Margin": f"{m.gross_margin_pct:.1f}%" if m.gross_margin_pct else "—",
                     "EBITDA Margin": f"{m.ebitda_margin_pct:.1f}%" if m.ebitda_margin_pct else "—",
-                    "Revenue Growth": f"{m.revenue_growth_yoy:+.1f}%" if m.revenue_growth_yoy else "—",
+                    "Growth YoY": f"{m.revenue_growth_yoy:+.1f}%" if m.revenue_growth_yoy else "—",
                     "EV/EBITDA": "—",
                 })
             for p in brief.peer_companies:
@@ -345,49 +375,52 @@ if run_btn or st.session_state.get("ready"):
                     "Revenue": rev,
                     "Gross Margin": f"{p.gross_margin_pct:.1f}%" if p.gross_margin_pct else "—",
                     "EBITDA Margin": f"{p.ebitda_margin_pct:.1f}%" if p.ebitda_margin_pct else "—",
-                    "Revenue Growth": f"{p.revenue_growth_yoy_pct:.1f}%" if p.revenue_growth_yoy_pct else "—",
+                    "Growth YoY": f"{p.revenue_growth_yoy_pct:.1f}%" if p.revenue_growth_yoy_pct else "—",
                     "EV/EBITDA": f"{p.ev_to_ebitda:.1f}x" if p.ev_to_ebitda else "—",
                 })
             st.dataframe(pd.DataFrame(peer_rows), use_container_width=True, hide_index=True)
 
-        # Gap Analysis
+        # ── Gap Analysis ──
         if brief.gaps:
-            st.subheader("Where You Stand vs Peers")
+            st.subheader("Gap Analysis")
+            gap_rows = []
             for g in brief.gaps:
-                if g.gap < -2:
-                    st.markdown(f"🔴 **{g.metric}** — {g.company_value:.1f}% vs {g.peer_median:.1f}% median ({g.gap:+.1f}pp). {g.opportunity}")
-                elif g.gap > 2:
-                    st.markdown(f"🟢 **{g.metric}** — {g.company_value:.1f}% vs {g.peer_median:.1f}% median ({g.gap:+.1f}pp). Outperforming peers.")
-                else:
-                    st.markdown(f"⚪ **{g.metric}** — {g.company_value:.1f}% vs {g.peer_median:.1f}% median. In line with peers.")
+                status = "🟢 Strength" if g.gap > 2 else ("🔴 Gap" if g.gap < -2 else "⚪ In Line")
+                gap_rows.append({
+                    "Metric": g.metric,
+                    "Company": f"{g.company_value:.1f}%",
+                    "Peer Median": f"{g.peer_median:.1f}%",
+                    "Delta": f"{g.gap:+.1f}pp",
+                    "Status": status,
+                })
+            st.dataframe(pd.DataFrame(gap_rows), use_container_width=True, hide_index=True)
 
-        # Industry Context (the detailed niche stuff)
+        # ── Sector Intelligence (clean, concise) ──
         if brief.industry_context:
             st.subheader("Sector Intelligence")
-            # Clean up the text — remove citation brackets for readability
-            import re
-            clean_text = re.sub(r'\[\d+\]', '', brief.industry_context)
-            st.markdown(clean_text[:3000])
+            # Clean: remove citations, grok tags, excessive formatting
+            clean = brief.industry_context
+            clean = re.sub(r'\[\d+\]', '', clean)
+            clean = re.sub(r'<[^>]+>', '', clean)
+            clean = re.sub(r'\n{3,}', '\n\n', clean)
+            # Take first ~1500 chars for readability
+            if len(clean) > 1500:
+                # Cut at last sentence boundary
+                cut = clean[:1500].rfind('.')
+                if cut > 500:
+                    clean = clean[:cut + 1]
+            st.markdown(clean)
 
-        # News — cleaned up
-        if brief.news:
-            st.subheader("Recent Developments")
-            for n in brief.news[:6]:
-                if not n.title or len(n.title) < 10:
-                    continue
-                icon = {"company": "🏢", "competitor": "⚔️", "industry": "📰"}.get(n.relevance, "📰")
-                # Clean snippet
-                snippet = n.snippet.replace("\n", " ").strip()[:200] if n.snippet else ""
-                if snippet and len(snippet) > 20:
-                    st.markdown(f"{icon} **{n.title}**")
-                    st.caption(snippet)
-                else:
-                    st.markdown(f"{icon} {n.title}")
-
-        # Synthesis
+        # ── Strategic Summary ──
         if brief.synthesis:
             st.subheader("Strategic Summary")
-            st.markdown(brief.synthesis)
+            # Clean synthesis too
+            synth = brief.synthesis
+            synth = re.sub(r'\[\d+\]', '', synth)
+            synth = re.sub(r'<[^>]+>', '', synth)
+            # Remove broken LaTeX/math artifacts
+            synth = re.sub(r'\$[^$]+\$', '', synth)
+            st.markdown(synth[:2000])
 
     st.markdown("---")
 
