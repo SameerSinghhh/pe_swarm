@@ -205,27 +205,8 @@ if run_btn or st.session_state.get("ready"):
     export_to_excel(analysis, buf, ingested=export_data, company_name=company)
     excel_bytes = buf.getvalue()
 
-    dl1, dl2 = st.columns(2)
-    with dl1:
-        st.download_button("📥 Download Excel", excel_bytes, file_name=f"{company}_{date.today()}.xlsx",
-                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
-    with dl2:
-        # Generate PPTX
-        from exports.pptx_export import export_to_pptx
-        pptx_buf = io.BytesIO()
-        export_to_pptx(
-            analysis=analysis,
-            research_brief=st.session_state.get("research"),
-            value_creation=st.session_state.get("vc_plan"),
-            model_result=model,
-            company_name=company,
-            sector=sector,
-            filepath=pptx_buf,
-        )
-        st.download_button("📥 Download Presentation", pptx_buf.getvalue(),
-                           file_name=f"{company}_{date.today()}.pptx",
-                           mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                           use_container_width=True)
+    st.download_button("📥 Download Full Excel Workbook", excel_bytes, file_name=f"{company}_{date.today()}.xlsx",
+                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
 
     # Tabs
     tab_names = []
@@ -369,44 +350,77 @@ if run_btn or st.session_state.get("ready"):
                 st.error(f"Research failed: {e}")
 
     if "research" in st.session_state:
+        import re
         brief = st.session_state["research"]
 
-        # Generate research PPTX
-        from exports.pptx_export import export_to_pptx
-        research_pptx = io.BytesIO()
-        export_to_pptx(
-            analysis=analysis,
-            research_brief=brief,
-            company_name=company, sector=sector,
-            filepath=research_pptx,
-        )
+        # ── Peer Comparison Table ──
+        if brief.peer_companies:
+            st.subheader("Peer Benchmarking")
+            peer_rows = []
+            if analysis.margins and analysis.margins.periods:
+                m = analysis.margins.periods[-1]
+                ltm_rev = analysis.ltm.ltm_revenue if analysis.ltm else None
+                peer_rows.append({
+                    "Company": f"{company} ★",
+                    "Revenue": f"${ltm_rev/1e6:.0f}M" if ltm_rev else "—",
+                    "Gross Margin": f"{m.gross_margin_pct:.1f}%" if m.gross_margin_pct else "—",
+                    "EBITDA Margin": f"{m.ebitda_margin_pct:.1f}%" if m.ebitda_margin_pct else "—",
+                    "Growth YoY": f"{m.revenue_growth_yoy:+.1f}%" if m.revenue_growth_yoy else "—",
+                    "EV/EBITDA": "—",
+                })
+            for p in brief.peer_companies:
+                rev = f"${p.revenue/1e9:.1f}B" if p.revenue and p.revenue > 1e9 else (f"${p.revenue/1e6:.0f}M" if p.revenue else "—")
+                peer_rows.append({
+                    "Company": f"{p.name} ({p.ticker})",
+                    "Revenue": rev,
+                    "Gross Margin": f"{p.gross_margin_pct:.1f}%" if p.gross_margin_pct else "—",
+                    "EBITDA Margin": f"{p.ebitda_margin_pct:.1f}%" if p.ebitda_margin_pct else "—",
+                    "Growth YoY": f"{p.revenue_growth_yoy_pct:.1f}%" if p.revenue_growth_yoy_pct else "—",
+                    "EV/EBITDA": f"{p.ev_to_ebitda:.1f}x" if p.ev_to_ebitda else "—",
+                })
+            st.dataframe(pd.DataFrame(peer_rows), use_container_width=True, hide_index=True)
 
-        # Slide preview
-        from pptx import Presentation as PptxRead
-        prs_preview = PptxRead(io.BytesIO(research_pptx.getvalue()))
-        slide_names = []
-        for s in prs_preview.slides:
-            texts = [sh.text for sh in s.shapes if hasattr(sh, 'text') and sh.text]
-            slide_names.append(texts[0][:30] if texts else "Slide")
+        # ── Gap Analysis ──
+        if brief.gaps:
+            st.subheader("Gap Analysis")
+            gap_rows = []
+            for g in brief.gaps:
+                status = "🟢 Strength" if g.gap > 2 else ("🔴 Gap" if g.gap < -2 else "⚪ In Line")
+                gap_rows.append({
+                    "Metric": g.metric,
+                    "Company": f"{g.company_value:.1f}%",
+                    "Peer Median": f"{g.peer_median:.1f}%",
+                    "Delta": f"{g.gap:+.1f}pp",
+                    "Status": status,
+                })
+            st.dataframe(pd.DataFrame(gap_rows), use_container_width=True, hide_index=True)
 
-        preview_tabs = st.tabs(slide_names)
-        for i, s in enumerate(prs_preview.slides):
-            with preview_tabs[i]:
-                # Show all text content from the slide
-                for shape in s.shapes:
-                    if hasattr(shape, 'text') and shape.text.strip():
-                        st.text(shape.text[:500])
-                    if shape.has_table:
-                        rows = []
-                        for row in shape.table.rows:
-                            rows.append([cell.text for cell in row.cells])
-                        if rows:
-                            st.dataframe(pd.DataFrame(rows[1:], columns=rows[0]) if len(rows) > 1 else pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        # ── Sector Intelligence (clean, concise) ──
+        if brief.industry_context:
+            st.subheader("Sector Intelligence")
+            # Clean: remove citations, grok tags, excessive formatting
+            clean = brief.industry_context
+            clean = re.sub(r'\[\d+\]', '', clean)
+            clean = re.sub(r'<[^>]+>', '', clean)
+            clean = re.sub(r'\n{3,}', '\n\n', clean)
+            # Take first ~1500 chars for readability
+            if len(clean) > 1500:
+                # Cut at last sentence boundary
+                cut = clean[:1500].rfind('.')
+                if cut > 500:
+                    clean = clean[:cut + 1]
+            st.markdown(clean)
 
-        st.download_button("📥 Download Research Presentation", research_pptx.getvalue(),
-                           file_name=f"{company}_Research_{date.today()}.pptx",
-                           mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                           use_container_width=True)
+        # ── Strategic Summary ──
+        if brief.synthesis:
+            st.subheader("Strategic Summary")
+            # Clean synthesis too
+            synth = brief.synthesis
+            synth = re.sub(r'\[\d+\]', '', synth)
+            synth = re.sub(r'<[^>]+>', '', synth)
+            # Remove broken LaTeX/math artifacts
+            synth = re.sub(r'\$[^$]+\$', '', synth)
+            st.markdown(synth[:2000])
 
     st.markdown("---")
 
@@ -430,57 +444,83 @@ if run_btn or st.session_state.get("ready"):
     if "vc_plan" in st.session_state:
         vc = st.session_state["vc_plan"]
 
-        # Show errors if any
+        # Show any agent errors for debugging
         if hasattr(vc, '_errors') and vc._errors:
             with st.expander(f"⚠️ Agent issues ({len(vc._errors)})"):
                 for err in vc._errors:
                     st.warning(err)
 
-        # Quick summary metrics
+        # Executive Summary
+        if vc.executive_summary:
+            st.subheader("Executive Summary")
+            st.markdown(vc.executive_summary)
+
+        # Total opportunity
         if vc.total_ebitda_opportunity > 0:
-            vc1, vc2 = st.columns(2)
-            with vc1:
-                st.metric("Total Annual EBITDA Opportunity", _fmt(vc.total_ebitda_opportunity))
-            with vc2:
-                st.metric("Initiatives Found", len(vc.prioritized_plan))
+            st.metric("Total Annual EBITDA Opportunity", _fmt(vc.total_ebitda_opportunity))
 
-        # Generate value creation PPTX
-        from exports.pptx_export import export_to_pptx
-        vc_pptx = io.BytesIO()
-        export_to_pptx(
-            analysis=analysis,
-            research_brief=st.session_state.get("research"),
-            value_creation=vc,
-            model_result=model,
-            company_name=company, sector=sector,
-            filepath=vc_pptx,
-        )
+        # Prioritized Plan
+        if vc.prioritized_plan:
+            st.subheader("Prioritized Initiatives")
+            plan_rows = []
+            for i, init in enumerate(vc.prioritized_plan, 1):
+                plan_rows.append({
+                    "#": i,
+                    "Initiative": init.name,
+                    "Category": init.category,
+                    "Annual Impact": _fmt(init.ebitda_impact_annual),
+                    "Cost": _fmt(init.implementation_cost),
+                    "Timeline": f"{init.timeline_months}mo",
+                    "Confidence": init.confidence,
+                    "Tools": ", ".join(init.specific_tools) if init.specific_tools else "—",
+                })
+            st.dataframe(pd.DataFrame(plan_rows), use_container_width=True, hide_index=True)
 
-        # Slide preview
-        from pptx import Presentation as PptxRead2
-        prs_preview = PptxRead2(io.BytesIO(vc_pptx.getvalue()))
-        slide_names = []
-        for s in prs_preview.slides:
-            texts = [sh.text for sh in s.shapes if hasattr(sh, 'text') and sh.text]
-            slide_names.append(texts[0][:30] if texts else "Slide")
+        # AI Transformation
+        if vc.ai_automation_opportunities or vc.ai_product_recommendations or vc.ai_disruption_risks:
+            st.subheader("AI Transformation Roadmap")
 
-        preview_tabs = st.tabs(slide_names)
-        for i, s in enumerate(prs_preview.slides):
-            with preview_tabs[i]:
-                for shape in s.shapes:
-                    if hasattr(shape, 'text') and shape.text.strip():
-                        st.text(shape.text[:500])
-                    if shape.has_table:
-                        rows = []
-                        for row in shape.table.rows:
-                            rows.append([cell.text for cell in row.cells])
-                        if rows:
-                            st.dataframe(pd.DataFrame(rows[1:], columns=rows[0]) if len(rows) > 1 else pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            if vc.ai_automation_opportunities:
+                with st.expander(f"🔧 AI Automation ({len(vc.ai_automation_opportunities)} opportunities)", expanded=True):
+                    for a in vc.ai_automation_opportunities:
+                        tools = ", ".join(a.specific_tools) if a.specific_tools else ""
+                        st.markdown(f"**{a.name}** {f'({tools})' if tools else ''}")
+                        st.caption(a.description)
 
-        st.download_button("📥 Download Value Creation Presentation", vc_pptx.getvalue(),
-                           file_name=f"{company}_ValueCreation_{date.today()}.pptx",
-                           mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                           use_container_width=True)
+            if vc.ai_product_recommendations:
+                with st.expander(f"🚀 Product AI Features ({len(vc.ai_product_recommendations)})"):
+                    for r in vc.ai_product_recommendations:
+                        st.markdown(f"• {r}")
+
+            if vc.ai_disruption_risks:
+                with st.expander(f"⚠️ AI Disruption Risks ({len(vc.ai_disruption_risks)})"):
+                    for r in vc.ai_disruption_risks:
+                        st.markdown(f"• {r}")
+
+            if vc.proprietary_ai_opportunities:
+                with st.expander(f"🏗️ Build Proprietary AI ({len(vc.proprietary_ai_opportunities)})"):
+                    for r in vc.proprietary_ai_opportunities:
+                        st.markdown(f"• {r}")
+
+        # Strategic
+        if vc.strategic_priorities:
+            st.subheader("Strategic Priorities")
+            for p in vc.strategic_priorities:
+                st.markdown(f"• {p}")
+
+        if vc.key_risks:
+            st.subheader("Key Risks")
+            for r in vc.key_risks:
+                st.markdown(f"• {r}")
+
+        if vc.exit_readiness_notes:
+            with st.expander("Exit Readiness Assessment"):
+                st.markdown(vc.exit_readiness_notes)
+
+        if vc.conflicts_resolved:
+            with st.expander("Agent Conflicts Resolved"):
+                for c in vc.conflicts_resolved:
+                    st.caption(c)
 
 else:
     st.markdown("---")
