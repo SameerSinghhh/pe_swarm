@@ -16,6 +16,8 @@ An operating partner opens "Meridian Software" and chats:
 - "Why did EBITDA margin drop in February?" → AI already has the variance analysis, answers instantly
 - "What if we raised prices 10% on SMB?" → AI models the math from revenue detail data
 - "Pipeline is soft for Q3" → AI stores the context, flags risk in next month's analysis
+- "What if we cut 3 sales reps?" → AI recalculates projections, shows net EBITDA impact
+- "Where should we implement AI?" → AI has already researched tools, sizes the ROI
 
 It's not a dashboard. It's a thinking partner for each portfolio company.
 
@@ -25,6 +27,17 @@ It's not a dashboard. It's a thinking partner for each portfolio company.
 2. Cross-portfolio pattern recognition ("this margin pattern preceded revenue decline at Atlas too")
 3. Institutional memory (never loses knowledge when analysts leave)
 4. Speed of iteration (50 scenarios in the time it takes an analyst to model 3)
+5. The AI calls REAL math functions — never hallucates numbers, never makes up calculations
+
+## Key Principles
+
+- AI reasons ON TOP of verified math — it calls tested functions, never does math itself
+- 240 tests prove every calculation is correct
+- When the AI doesn't know something, it asks — never makes things up
+- Complete data isolation per PE firm — NEVER share one firm's data with another
+- Each portfolio company's data, conversations, and context are completely separate
+- The conversational agent has persistent memory per company
+- Human-in-the-loop: the operating partner adds context the data can't capture
 
 ---
 
@@ -51,48 +64,56 @@ All deterministic math PE analysts do monthly. Zero assumptions, 100% accurate.
 - Excel Export (10-tab formatted workbook, analyst-ready)
 - 240 tests, 0 failures
 
----
-
-## Roadmap
-
-### Phase 3: Assumption-Driven Analysis ← NEXT
-The analyst inputs their assumptions, the system does all the math instantly.
-This is where the tool goes from "reporting what happened" to "modeling what could happen."
+### Phase 3: Assumption-Driven Analysis ✅ COMPLETE
 - Forecasting framework (growth rates, margin targets → projected P&L)
 - Scenario modeling (base/upside/downside with toggleable inputs)
-- Initiative sizing ("if DSO improves 5 days → $X freed")
-- Sensitivity tables (what if growth is 5% vs 10% vs 15%)
-- LBO refresh (exit multiple + timing → IRR/MOIC)
+- Auto-suggestion engine (reads historical data, proposes defaults)
+- BS/CF projections (balance sheet + cash flow projected month by month)
+- Returns calculator (IRR, MOIC from projected financials)
+- Sensitivity tables
 
-### Phase 4: External Data
-Pull in context the company's data alone can't provide:
-- Peer benchmarking (public comp margins, growth, multiples)
-- Industry benchmarks (median DSO, margin ranges by sector)
-- Market/macro context (rates, industry trends, news)
-- Comparable transactions (recent deal multiples)
+### Phase 4: External Data ✅ COMPLETE
+- Peer benchmarking via yfinance (public comp margins, growth, multiples)
+- Industry benchmarks by sector (static reference data)
+- Perplexity API for industry research and competitor intelligence
+- Claude-powered company profiling (understands the business, suggests real comps)
+- Gap analysis (company vs peer median, sized in dollars)
 
-### Phase 5: Per-Company AI Analyst (THE PRODUCT)
-Each portfolio company gets its own AI that:
-- Has all financial data loaded + all analysis pre-computed
+### Phase 5: AI Value Creation Agents ✅ COMPLETE
+- Financial Agent: finds margin gaps, cost inefficiencies, WC opportunities
+- AI Transform Agent: 12 Perplexity queries researching specific AI tools by department
+- Strategic Agent: exit positioning, risks, growth vs profitability
+- Synthesis Agent: resolves conflicts, ranks initiatives, writes executive summary
+- Produces prioritized value creation plan with sized EBITDA impact
+
+---
+
+## Next: Conversational AI Analyst ← BUILDING NOW
+
+The per-company chat interface where the operating partner talks to an AI that:
+- Has ALL financial data loaded + analysis pre-computed
 - Has external context (industry, comps, macro)
-- Remembers every conversation with the operating partner
+- Remembers every conversation
+- Can run scenarios in real-time ("what if we cut DSO by 5 days?")
+- Can modify projections when asked
+- Asks questions when it needs more context — never makes things up
 - Gets smarter every month as new data comes in
-- Operating partner chats with it naturally to explore the data
 
-Implementation approach:
-- Agent swarms (Revenue Agent, Margin Agent, WC Agent, AI Transformation Agent)
-- Each analyzes from a different angle, they argue and synthesize
-- Human-in-the-loop: operating partner adds insider context via chat
-- The AI + human together find value creation opportunities
-- Prioritized value creation plan with sized EBITDA impact
+## Future
 
-### Phase 6: Portfolio Intelligence
-Cross-company analysis across the entire fund:
-- Pattern recognition ("this happened at Company A, now happening at Company B")
-- Institutional memory (what playbooks worked before)
-- Portfolio-level dashboards and reporting
-- LP reporting automation
+### Cross-Portfolio Intelligence (within one PE firm only)
+- Pattern recognition across the firm's own portfolio companies
+- "This happened at Company A, now showing up at Company B"
+- Outcome tracking: which recommendations actually worked?
+- Institutional memory: what playbooks succeeded before?
+- NEVER share data between different PE firms
+
+### Product Maturity
 - Board deck generation
+- LP reporting automation
+- Integration with ERPs (NetSuite, QuickBooks API)
+- Mobile interface
+- Multi-user with role-based access
 
 ---
 
@@ -100,7 +121,7 @@ Cross-company analysis across the entire fund:
 
 ```
 pe_swarm/
-├── core/                    ← Data ingestion
+├── core/                    ← Data ingestion (Phase 1)
 │   ├── ingest.py            Universal orchestrator
 │   ├── classify.py          Document type classification
 │   ├── normalize.py         AI normalization (Claude)
@@ -113,7 +134,7 @@ pe_swarm/
 │   ├── result.py            NormalizedResult dataclass
 │   └── schemas/             8 document type schemas
 │
-├── analysis/                ← Analysis engine
+├── analysis/                ← Analysis engine (Phase 2)
 │   ├── types.py             Result dataclasses + enums
 │   ├── utils.py             safe_div, favorability helpers
 │   ├── ebitda_bridge.py     EBITDA bridges (MoM, Budget, PY)
@@ -127,6 +148,35 @@ pe_swarm/
 │   ├── excel_export.py      10-tab formatted Excel workbook
 │   └── engine.py            Orchestrator
 │
+├── modeling/                ← Assumption-driven modeling (Phase 3)
+│   ├── types.py             Assumption dataclasses
+│   ├── projections.py       P&L + BS + CF projections
+│   ├── initiatives.py       Initiative ramp + confidence
+│   ├── returns.py           IRR, MOIC calculator
+│   ├── scenarios.py         Scenario manager
+│   ├── sensitivity.py       2-way sensitivity tables
+│   ├── auto_suggest.py      Auto-generate assumptions from history
+│   └── engine.py            Modeling orchestrator
+│
+├── research/                ← External data (Phase 4)
+│   ├── types.py             Research result dataclasses
+│   ├── company_profile.py   Claude-powered company understanding
+│   ├── peers.py             yfinance peer financials
+│   ├── benchmarks.py        Static industry benchmarks
+│   ├── macro.py             Market data
+│   ├── perplexity.py        Perplexity API wrapper
+│   ├── synthesize.py        Gap analysis + Claude synthesis
+│   └── engine.py            Research orchestrator
+│
+├── value_creation/          ← AI value creation agents (Phase 5)
+│   ├── types.py             SizedInitiative, ValueCreationPlan
+│   ├── context.py           Serializes data for agent prompts
+│   ├── financial_agent.py   Finds EBITDA improvement opportunities
+│   ├── ai_transform_agent.py  Researches AI tools (12 Perplexity queries)
+│   ├── strategic_agent.py   Exit positioning + risks
+│   ├── synthesis_agent.py   Merges + ranks all initiatives
+│   └── engine.py            Parallel agent orchestrator
+│
 ├── tests/                   ← 240 tests, 0 failures
 │   ├── test_all.py          179 analysis math tests
 │   └── test_excel.py        61 Excel verification tests
@@ -138,16 +188,6 @@ pe_swarm/
 └── .env
 ```
 
-## Key Principles
-
-- All backward-looking analysis is deterministic — no assumptions, no AI, just math
-- Forward-looking analysis separates math (exact) from assumptions (analyst inputs)
-- The AI layer reasons ON TOP of verified math — never replaces it
-- Human-in-the-loop for insider context that data can't capture
-- Excel is the primary output format (analysts live in Excel)
-- Every calculation is tested (240 tests, 0 failures)
-- Each portfolio company is its own context — data, conversations, history
-
 ## Running
 
 ```bash
@@ -157,4 +197,4 @@ python main.py                # CLI
 
 ## Dependencies
 
-anthropic, pandas, streamlit, python-dotenv, openpyxl, pdfplumber
+anthropic, pandas, streamlit, python-dotenv, openpyxl, pdfplumber, yfinance
