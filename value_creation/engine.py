@@ -56,25 +56,32 @@ def run_value_creation(
     ai_output = {}
     strategic_output = {}
 
+    errors = []
+
     with ThreadPoolExecutor(max_workers=3) as pool:
         f1 = pool.submit(run_financial_agent, context_block, company_name, ltm_revenue)
         f2 = pool.submit(run_ai_transform_agent, context_block, company_name, ltm_revenue, profile, sector)
         f3 = pool.submit(run_strategic_agent, context_block, company_name)
 
         try:
-            financial_output = f1.result(timeout=30)
-        except Exception:
+            financial_output = f1.result(timeout=120)
+        except Exception as e:
+            errors.append(f"Financial agent: {e}")
             financial_output = []
 
         try:
-            ai_output = f2.result(timeout=90)  # Longer: 12 Perplexity calls
-        except Exception:
+            ai_output = f2.result(timeout=180)
+        except Exception as e:
+            errors.append(f"AI transform agent: {e}")
             ai_output = {}
 
         try:
-            strategic_output = f3.result(timeout=30)
-        except Exception:
+            strategic_output = f3.result(timeout=120)
+        except Exception as e:
+            errors.append(f"Strategic agent: {e}")
             strategic_output = {}
+
+    plan._errors = errors  # Attach for UI debugging
 
     # Store specialist outputs
     plan.financial_initiatives = financial_output

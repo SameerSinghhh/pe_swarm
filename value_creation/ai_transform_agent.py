@@ -75,12 +75,18 @@ def _do_research(profile: CompanyProfile | None, sector: str) -> str:
     queries = _build_research_queries(profile, sector)
     sections = []
 
+    import re
     for i, query in enumerate(queries):
         try:
             result = ai_search(query)
             if result:
-                sections.append(f"--- RESEARCH {i+1}: {query[:60]} ---\n{result[:800]}")
-            time.sleep(0.3)  # Rate limit courtesy
+                # Clean problematic chars that break JSON in Claude's response
+                clean = re.sub(r'\[\d+\]', '', result)
+                clean = re.sub(r'<[^>]+>', '', clean)
+                clean = re.sub(r'\$[^$]*\$', '', clean)
+                clean = re.sub(r'[{}]', '', clean)
+                sections.append(f"--- RESEARCH {i+1}: {query[:60]} ---\n{clean[:800]}")
+            time.sleep(0.3)
         except Exception:
             continue
 

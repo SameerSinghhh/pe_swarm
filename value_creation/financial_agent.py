@@ -92,5 +92,11 @@ def run_financial_agent(context_block: str, company_name: str, ltm_revenue: floa
             ))
         return initiatives
 
-    except Exception:
-        return []
+    except Exception as e:
+        # Return error info so the engine can report it
+        return [SizedInitiative(
+            name=f"[Agent Error: {type(e).__name__}]",
+            category="Error",
+            description=str(e)[:200],
+            ebitda_impact_annual=0,
+        )]

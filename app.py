@@ -444,6 +444,12 @@ if run_btn or st.session_state.get("ready"):
     if "vc_plan" in st.session_state:
         vc = st.session_state["vc_plan"]
 
+        # Show any agent errors for debugging
+        if hasattr(vc, '_errors') and vc._errors:
+            with st.expander(f"⚠️ Agent issues ({len(vc._errors)})"):
+                for err in vc._errors:
+                    st.warning(err)
+
         # Executive Summary
         if vc.executive_summary:
             st.subheader("Executive Summary")

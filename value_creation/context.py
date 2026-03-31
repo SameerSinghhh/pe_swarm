@@ -3,8 +3,23 @@ Context serializer. Converts AnalysisResult + ResearchBrief into
 a compact text block that agents receive as context.
 """
 
+import re
+
 from analysis.types import AnalysisResult
 from research.types import ResearchBrief
+
+
+def _clean_text(text: str) -> str:
+    """Remove characters that could break JSON parsing in agent outputs."""
+    if not text:
+        return ""
+    # Remove citation brackets, LaTeX, special chars
+    text = re.sub(r'\[\d+\]', '', text)
+    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r'\$[^$]*\$', '', text)
+    text = re.sub(r'[{}]', '', text)  # Remove curly braces that confuse JSON
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    return text.strip()
 
 
 def build_context_block(
@@ -102,9 +117,18 @@ def build_context_block(
         for g in research_brief.gaps:
             sections.append(f"  {g.metric}: {g.company_value:.1f}% vs {g.peer_median:.1f}% median ({g.gap:+.1f}pp)")
 
-    # Industry context (truncated)
+    # Industry context (truncated and cleaned)
     if research_brief and research_brief.industry_context:
         sections.append(f"\nINDUSTRY CONTEXT:")
-        sections.append(f"  {research_brief.industry_context[:500]}")
+        clean_ctx = _clean_text(research_brief.industry_context[:500])
+        sections.append(f"  {clean_ctx}")
+
+    # News headlines (cleaned)
+    if research_brief and research_brief.news:
+        sections.append(f"\nRECENT NEWS:")
+        for n in research_brief.news[:4]:
+            if n.title and len(n.title) > 10:
+                clean_title = _clean_text(n.title)
+                sections.append(f"  [{n.relevance}] {clean_title}")
 
     return "\n".join(sections)
