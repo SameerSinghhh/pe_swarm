@@ -16,14 +16,17 @@ interface CardData {
 }
 
 export default function MetricCards({ ltm, returns }: MetricCardsProps) {
+  const revenueGrowth = ltm?.ltm_revenue_growth_yoy ?? null;
+  const ruleOf40 = ltm?.rule_of_40 ?? null;
+
   const cards: CardData[] = [
     {
       label: 'LTM Revenue',
       value: fmtDollar(ltm?.ltm_revenue ?? null),
-      delta: ltm?.ltm_revenue_growth_yoy != null
-        ? `${ltm.ltm_revenue_growth_yoy > 0 ? '+' : ''}${ltm.ltm_revenue_growth_yoy.toFixed(1)}% YoY`
+      delta: revenueGrowth != null
+        ? `${revenueGrowth > 0 ? '+' : ''}${revenueGrowth.toFixed(1)}% YoY`
         : undefined,
-      deltaPositive: ltm?.ltm_revenue_growth_yoy != null ? ltm.ltm_revenue_growth_yoy > 0 : undefined,
+      deltaPositive: revenueGrowth != null ? revenueGrowth > 0 : undefined,
     },
     {
       label: 'LTM EBITDA',
@@ -35,10 +38,10 @@ export default function MetricCards({ ltm, returns }: MetricCardsProps) {
     },
     {
       label: 'Rule of 40',
-      value: ltm?.rule_of_40 != null ? ltm.rule_of_40.toFixed(1) : '—',
-      deltaPositive: ltm?.rule_of_40 != null ? ltm.rule_of_40 >= 40 : undefined,
-      delta: ltm?.rule_of_40 != null
-        ? (ltm.rule_of_40 >= 40 ? 'Above threshold' : 'Below threshold')
+      value: ruleOf40 != null ? ruleOf40.toFixed(1) : '—',
+      deltaPositive: ruleOf40 != null ? ruleOf40 >= 40 : undefined,
+      delta: ruleOf40 != null
+        ? (ruleOf40 >= 40 ? 'Above threshold' : 'Below threshold')
         : undefined,
     },
     {

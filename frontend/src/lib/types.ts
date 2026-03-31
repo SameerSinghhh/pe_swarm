@@ -28,6 +28,14 @@ export interface EBITDABridge {
   is_verified: boolean;
 }
 
+/** The actual API shape for ebitda_bridges */
+export interface EBITDABridgesResponse {
+  current_period: string;
+  mom: EBITDABridge | null;
+  vs_budget: EBITDABridge | null;
+  vs_prior_year: EBITDABridge | null;
+}
+
 export interface Margins {
   period: string;
   gross_margin_pct: number | null;
@@ -45,21 +53,35 @@ export interface LineVariance {
   comparator: number;
   dollar_change: number;
   pct_change: number | null;
+  as_pct_of_revenue: number | null;
   favorable: string;
+}
+
+/** Single period of variance data from the API */
+export interface VariancePeriod {
+  period: string;
+  vs_budget: LineVariance[] | null;
+  vs_prior_month: LineVariance[] | null;
+  vs_prior_year: LineVariance[] | null;
 }
 
 export interface WCPeriod {
   period: string;
   dso: number | null;
   dpo: number | null;
+  dio: number | null;
   ccc: number | null;
   wc_change: number | null;
+  dso_cash_impact: number | null;
+  ar_aging: Record<string, number> | null;
 }
 
 export interface FCFPeriod {
   period: string;
   free_cash_flow: number | null;
   cash_conversion_ratio: number | null;
+  net_debt: number | null;
+  ltm_ebitda: number | null;
   net_debt_to_ltm_ebitda: number | null;
 }
 
@@ -67,6 +89,8 @@ export interface TrendFlag {
   metric: string;
   flag_type: string;
   severity: string;
+  current_value: number | null;
+  period: string | null;
   detail: string;
 }
 
@@ -106,9 +130,9 @@ export interface ChatMessage {
 
 export interface AnalysisData {
   ltm: LTMMetrics | null;
-  ebitda_bridges: Record<string, EBITDABridge> | null;
-  margins: { periods: Margins[] } | null;
-  variance: Record<string, { line_items: LineVariance[] }> | null;
+  ebitda_bridges: EBITDABridgesResponse | null;
+  margins: { periods: Margins[]; as_dataframe?: Record<string, unknown>[] } | null;
+  variance: { periods: VariancePeriod[] } | null;
   working_capital: { periods: WCPeriod[] } | null;
   fcf: { periods: FCFPeriod[] } | null;
   trends: { flags: TrendFlag[] } | null;

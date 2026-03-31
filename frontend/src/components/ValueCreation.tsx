@@ -66,13 +66,13 @@ export default function ValueCreation({ data, onRun, loading }: ValueCreationPro
               {fmtDollar(data.total_opportunity)}
             </p>
             <p className="text-sm text-indigo-200 mt-1">
-              Across {data.initiatives.length} identified initiatives
+              Across {data.initiatives?.length ?? 0} identified initiatives
             </p>
           </div>
 
           {/* Initiative cards */}
           <div className="space-y-4">
-            {data.initiatives.map((init: SizedInitiative, i: number) => (
+            {(data.initiatives ?? []).map((init: SizedInitiative, i: number) => (
               <div
                 key={i}
                 className="border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors"
@@ -83,16 +83,16 @@ export default function ValueCreation({ data, onRun, loading }: ValueCreationPro
                       {i + 1}
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900">{init.name}</h3>
-                      <p className="text-sm text-gray-500 mt-0.5">{init.description}</p>
+                      <h3 className="text-sm font-semibold text-gray-900">{init?.name ?? '—'}</h3>
+                      <p className="text-sm text-gray-500 mt-0.5">{init?.description ?? ''}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 flex-shrink-0 ml-4">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${categoryColor(init.category)}`}>
-                      {init.category}
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${categoryColor(init?.category ?? '')}`}>
+                      {init?.category ?? '—'}
                     </span>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${confidenceColor(init.confidence)}`}>
-                      {init.confidence}
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${confidenceColor(init?.confidence ?? '')}`}>
+                      {init?.confidence ?? '—'}
                     </span>
                   </div>
                 </div>
@@ -100,19 +100,19 @@ export default function ValueCreation({ data, onRun, loading }: ValueCreationPro
                 <div className="flex items-center space-x-6 text-sm">
                   <div className="flex items-center space-x-1.5 text-emerald-600">
                     <DollarSign className="w-3.5 h-3.5" />
-                    <span className="font-semibold">{fmtDollar(init.ebitda_impact_annual)}/yr</span>
+                    <span className="font-semibold">{fmtDollar(init?.ebitda_impact_annual ?? null)}/yr</span>
                   </div>
                   <div className="flex items-center space-x-1.5 text-gray-500">
                     <TrendingUp className="w-3.5 h-3.5" />
-                    <span>Cost: {fmtDollar(init.implementation_cost)}</span>
+                    <span>Cost: {fmtDollar(init?.implementation_cost ?? null)}</span>
                   </div>
                   <div className="flex items-center space-x-1.5 text-gray-500">
                     <Clock className="w-3.5 h-3.5" />
-                    <span>{init.timeline_months} months</span>
+                    <span>{init?.timeline_months ?? '—'} months</span>
                   </div>
                 </div>
 
-                {init.specific_tools?.length > 0 && (
+                {(init?.specific_tools?.length ?? 0) > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {init.specific_tools.map((tool, j) => (
                       <span

@@ -129,7 +129,7 @@ export default function Home() {
                   onClick={() => setCompanyOpen(!companyOpen)}
                   className="flex items-center space-x-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
                 >
-                  <span>{session ? session.company_name : 'Select Company'}</span>
+                  <span>{session?.company_name ?? 'Select Company'}</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
                 {companyOpen && (
@@ -153,7 +153,7 @@ export default function Home() {
               {session && (
                 <>
                   <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                    {session.sector}
+                    {session.sector ?? '—'}
                   </span>
                   <a
                     href={getExcelUrl(session.session_id)}
@@ -230,16 +230,16 @@ export default function Home() {
           <div className="space-y-6">
             {/* Metric cards */}
             <MetricCards
-              ltm={session.analysis.ltm}
-              returns={session.returns}
+              ltm={session.analysis?.ltm ?? null}
+              returns={session.returns ?? null}
             />
 
             {/* Analysis tabs */}
-            <AnalysisTabs analysis={session.analysis} />
+            <AnalysisTabs analysis={session.analysis ?? null} />
 
             {/* Assumptions */}
             <Assumptions
-              assumptions={session.assumptions}
+              assumptions={session.assumptions ?? null}
               onUpdate={handleUpdateAssumptions}
             />
 
@@ -262,7 +262,7 @@ export default function Home() {
               messages={chatMessages}
               onSend={handleSendChat}
               loading={chatLoading}
-              companyName={session.company_name}
+              companyName={session.company_name ?? 'Company'}
             />
           </div>
         )}

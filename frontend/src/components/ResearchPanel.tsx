@@ -37,7 +37,7 @@ export default function ResearchPanel({ data, onRun, loading }: ResearchPanelPro
       {data && (
         <div className="p-6 space-y-8">
           {/* Peer Comparison Table */}
-          {data.peers?.length > 0 && (
+          {(data.peers?.length ?? 0) > 0 && (
             <div>
               <h3 className="text-sm font-semibold text-gray-900 mb-3">Peer Comparison</h3>
               <div className="overflow-x-auto">
@@ -77,7 +77,7 @@ export default function ResearchPanel({ data, onRun, loading }: ResearchPanelPro
           )}
 
           {/* Gap Analysis Table */}
-          {data.gap_analysis?.length > 0 && (
+          {(data.gap_analysis?.length ?? 0) > 0 && (
             <div>
               <h3 className="text-sm font-semibold text-gray-900 mb-3">Gap Analysis</h3>
               <div className="overflow-x-auto">
@@ -94,13 +94,13 @@ export default function ResearchPanel({ data, onRun, loading }: ResearchPanelPro
                   <tbody className="divide-y divide-gray-100">
                     {data.gap_analysis.map((gap: GapAnalysis, i: number) => (
                       <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}>
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{gap.metric}</td>
-                        <td className="px-4 py-3 text-sm text-right text-gray-900">{gap.company_value.toFixed(1)}</td>
-                        <td className="px-4 py-3 text-sm text-right text-gray-900">{gap.peer_median.toFixed(1)}</td>
-                        <td className={`px-4 py-3 text-sm text-right font-medium ${gap.gap >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                          {gap.gap > 0 ? '+' : ''}{gap.gap.toFixed(1)}
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{gap?.metric ?? '—'}</td>
+                        <td className="px-4 py-3 text-sm text-right text-gray-900">{gap?.company_value != null ? gap.company_value.toFixed(1) : '—'}</td>
+                        <td className="px-4 py-3 text-sm text-right text-gray-900">{gap?.peer_median != null ? gap.peer_median.toFixed(1) : '—'}</td>
+                        <td className={`px-4 py-3 text-sm text-right font-medium ${(gap?.gap ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                          {gap?.gap != null ? `${gap.gap > 0 ? '+' : ''}${gap.gap.toFixed(1)}` : '—'}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-700">{gap.opportunity}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700">{gap?.opportunity ?? '—'}</td>
                       </tr>
                     ))}
                   </tbody>
