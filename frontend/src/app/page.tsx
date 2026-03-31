@@ -12,9 +12,9 @@ import ResearchPanel from '@/components/ResearchPanel';
 import ValueCreation from '@/components/ValueCreation';
 
 const DEMO_COMPANIES = [
-  { key: 'meridian', name: 'Meridian Software', sector: 'SaaS' },
-  { key: 'atlas', name: 'Atlas Manufacturing', sector: 'Industrial' },
-  { key: 'beacon', name: 'Beacon Healthcare', sector: 'Healthcare' },
+  { key: 'meridian', name: 'Meridian Software', sector: 'B2B SaaS' },
+  { key: 'atlas', name: 'Atlas Manufacturing', sector: 'Manufacturing' },
+  { key: 'acme', name: 'Acme Corp', sector: 'B2B SaaS' },
 ];
 
 export default function Home() {
