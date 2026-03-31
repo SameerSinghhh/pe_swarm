@@ -205,8 +205,27 @@ if run_btn or st.session_state.get("ready"):
     export_to_excel(analysis, buf, ingested=export_data, company_name=company)
     excel_bytes = buf.getvalue()
 
-    st.download_button("📥 Download Full Excel Workbook", excel_bytes, file_name=f"{company}_{date.today()}.xlsx",
-                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+    dl1, dl2 = st.columns(2)
+    with dl1:
+        st.download_button("📥 Download Excel", excel_bytes, file_name=f"{company}_{date.today()}.xlsx",
+                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+    with dl2:
+        # Generate PPTX
+        from exports.pptx_export import export_to_pptx
+        pptx_buf = io.BytesIO()
+        export_to_pptx(
+            analysis=analysis,
+            research_brief=st.session_state.get("research"),
+            value_creation=st.session_state.get("vc_plan"),
+            model_result=model,
+            company_name=company,
+            sector=sector,
+            filepath=pptx_buf,
+        )
+        st.download_button("📥 Download Presentation", pptx_buf.getvalue(),
+                           file_name=f"{company}_{date.today()}.pptx",
+                           mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                           use_container_width=True)
 
     # Tabs
     tab_names = []
