@@ -1,8 +1,8 @@
 """
 Peer company financials via yfinance.
 
-Pulls key metrics for public comparable companies: revenue, margins,
-growth, multiples. Fast, free, and reliable for the metrics PE firms care about.
+Pulls key metrics for public comparable companies.
+Tickers come from the CompanyProfile (Claude-suggested), not hardcoded.
 """
 
 from research.types import PeerCompany
@@ -54,23 +54,22 @@ def get_peer_financials(tickers: list[str]) -> list[PeerCompany]:
     return peers
 
 
-# Common peer groups by sector
-PEER_GROUPS = {
-    "B2B SaaS": ["CRM", "HUBS", "ZS", "DDOG", "NET", "BILL", "ZI"],
-    "Software": ["CRM", "NOW", "ADBE", "INTU", "WDAY", "TEAM"],
-    "Manufacturing": ["HON", "EMR", "ROK", "ETN", "DOV", "ITW"],
-    "Services": ["ACN", "IT", "LDOS", "BAH", "CACI", "SAIC"],
-    "Healthcare Services": ["UHS", "THC", "HCA", "EHC", "AMED"],
-    "Distribution": ["FAST", "GWW", "MSM", "WCC", "POOL"],
-    "Retail": ["AMZN", "TGT", "COST", "WMT", "HD", "LOW"],
-}
-
-
 def suggest_peers(sector: str) -> list[str]:
-    """Suggest peer tickers for a given sector."""
+    """
+    Fallback peer suggestion when Claude profile is unavailable.
+    Only used as a safety net.
+    """
+    FALLBACK = {
+        "B2B SaaS": ["CRM", "HUBS", "ZS", "DDOG", "NET"],
+        "Software": ["CRM", "NOW", "ADBE", "INTU", "WDAY"],
+        "Manufacturing": ["HON", "EMR", "ROK", "ETN", "DOV"],
+        "Services": ["ACN", "IT", "LDOS", "BAH", "CACI"],
+        "Healthcare Services": ["UHS", "THC", "HCA"],
+        "Distribution": ["FAST", "GWW", "MSM"],
+        "Retail": ["TGT", "COST", "HD"],
+    }
     sector_lower = sector.lower().strip()
-    for key, tickers in PEER_GROUPS.items():
+    for key, tickers in FALLBACK.items():
         if key.lower() in sector_lower or sector_lower in key.lower():
-            return tickers[:5]  # Return top 5
-    # Default: broad SaaS/tech
-    return ["CRM", "HUBS", "DDOG", "NET", "ZS"]
+            return tickers
+    return ["CRM", "HUBS", "DDOG"]

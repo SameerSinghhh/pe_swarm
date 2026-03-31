@@ -7,6 +7,19 @@ from typing import Optional
 
 
 @dataclass
+class CompanyProfile:
+    """Claude-generated understanding of what the company actually is."""
+    business_description: str = ""
+    sub_sector: str = ""
+    revenue_bracket: str = ""
+    target_market: str = ""
+    business_model: str = ""
+    suggested_comps: list[dict] = field(default_factory=list)  # [{ticker, name, reason}]
+    research_queries: list[str] = field(default_factory=list)
+    key_competitive_factors: list[str] = field(default_factory=list)
+
+
+@dataclass
 class PeerCompany:
     """Financial data for one public comparable company."""
     name: str
@@ -69,11 +82,12 @@ class ResearchBrief:
     """Complete external research package for one portfolio company."""
     company_name: str
     sector: str
+    profile: CompanyProfile = field(default_factory=CompanyProfile)
     peer_companies: list[PeerCompany] = field(default_factory=list)
     benchmarks: list[IndustryBenchmark] = field(default_factory=list)
     gaps: list[GapAnalysis] = field(default_factory=list)
     macro: MacroContext = field(default_factory=MacroContext)
     news: list[NewsItem] = field(default_factory=list)
-    industry_context: str = ""   # Perplexity-sourced industry summary
-    synthesis: str = ""          # Claude-generated strategic synthesis
+    industry_context: str = ""
+    synthesis: str = ""
     generated_at: str = ""
