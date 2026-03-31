@@ -429,12 +429,92 @@ if run_btn or st.session_state.get("ready"):
     # ═══════════════════════════════════════════════════════════════════════
 
     st.markdown("### Value Creation Analysis")
-    st.caption("AI-powered identification of value creation opportunities.")
-    st.info(
-        "Coming next: AI agent swarms will analyze all data above — financial analysis, projections, "
-        "peer benchmarks, and market context — to identify specific value creation opportunities with "
-        "sized EBITDA impact. Each portfolio company gets its own AI analyst."
-    )
+    st.caption("AI agents analyze financial data + market research to find specific, dollar-sized opportunities.")
+
+    if st.button("🤖 Run AI Value Creation Analysis", use_container_width=True):
+        with st.spinner("Running 3 specialist AI agents + synthesis (financial analysis, AI tool research, strategic positioning)..."):
+            try:
+                from value_creation.engine import run_value_creation
+                research = st.session_state.get("research")
+                vc_plan = run_value_creation(company, sector, analysis, research)
+                st.session_state["vc_plan"] = vc_plan
+            except Exception as e:
+                st.error(f"Value creation analysis failed: {e}")
+
+    if "vc_plan" in st.session_state:
+        vc = st.session_state["vc_plan"]
+
+        # Executive Summary
+        if vc.executive_summary:
+            st.subheader("Executive Summary")
+            st.markdown(vc.executive_summary)
+
+        # Total opportunity
+        if vc.total_ebitda_opportunity > 0:
+            st.metric("Total Annual EBITDA Opportunity", _fmt(vc.total_ebitda_opportunity))
+
+        # Prioritized Plan
+        if vc.prioritized_plan:
+            st.subheader("Prioritized Initiatives")
+            plan_rows = []
+            for i, init in enumerate(vc.prioritized_plan, 1):
+                plan_rows.append({
+                    "#": i,
+                    "Initiative": init.name,
+                    "Category": init.category,
+                    "Annual Impact": _fmt(init.ebitda_impact_annual),
+                    "Cost": _fmt(init.implementation_cost),
+                    "Timeline": f"{init.timeline_months}mo",
+                    "Confidence": init.confidence,
+                    "Tools": ", ".join(init.specific_tools) if init.specific_tools else "—",
+                })
+            st.dataframe(pd.DataFrame(plan_rows), use_container_width=True, hide_index=True)
+
+        # AI Transformation
+        if vc.ai_automation_opportunities or vc.ai_product_recommendations or vc.ai_disruption_risks:
+            st.subheader("AI Transformation Roadmap")
+
+            if vc.ai_automation_opportunities:
+                with st.expander(f"🔧 AI Automation ({len(vc.ai_automation_opportunities)} opportunities)", expanded=True):
+                    for a in vc.ai_automation_opportunities:
+                        tools = ", ".join(a.specific_tools) if a.specific_tools else ""
+                        st.markdown(f"**{a.name}** {f'({tools})' if tools else ''}")
+                        st.caption(a.description)
+
+            if vc.ai_product_recommendations:
+                with st.expander(f"🚀 Product AI Features ({len(vc.ai_product_recommendations)})"):
+                    for r in vc.ai_product_recommendations:
+                        st.markdown(f"• {r}")
+
+            if vc.ai_disruption_risks:
+                with st.expander(f"⚠️ AI Disruption Risks ({len(vc.ai_disruption_risks)})"):
+                    for r in vc.ai_disruption_risks:
+                        st.markdown(f"• {r}")
+
+            if vc.proprietary_ai_opportunities:
+                with st.expander(f"🏗️ Build Proprietary AI ({len(vc.proprietary_ai_opportunities)})"):
+                    for r in vc.proprietary_ai_opportunities:
+                        st.markdown(f"• {r}")
+
+        # Strategic
+        if vc.strategic_priorities:
+            st.subheader("Strategic Priorities")
+            for p in vc.strategic_priorities:
+                st.markdown(f"• {p}")
+
+        if vc.key_risks:
+            st.subheader("Key Risks")
+            for r in vc.key_risks:
+                st.markdown(f"• {r}")
+
+        if vc.exit_readiness_notes:
+            with st.expander("Exit Readiness Assessment"):
+                st.markdown(vc.exit_readiness_notes)
+
+        if vc.conflicts_resolved:
+            with st.expander("Agent Conflicts Resolved"):
+                for c in vc.conflicts_resolved:
+                    st.caption(c)
 
 else:
     st.markdown("---")
