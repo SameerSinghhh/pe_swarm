@@ -11,6 +11,7 @@ The most valuable and novel agent. Does DEEP internet research via Perplexity
 
 import json
 import os
+import re
 import time
 from dotenv import load_dotenv
 
@@ -151,27 +152,29 @@ Return ONLY valid JSON:
   "proprietary_ai_opportunities": ["Specific opportunity with investment estimate"]
 }}"""
 
-    user_message = f"""COMPANY DATA:
-{context_block}
-
-AI RESEARCH RESULTS:
-{research_results[:6000]}"""
-
     try:
         client = Anthropic()
+        # Clean context of problematic chars
+        clean_context = re.sub(r'[{}]', '', context_block)
+        clean_research = re.sub(r'[{}]', '', research_results[:6000])
+        clean_message = f"COMPANY DATA:\n{clean_context}\n\nAI RESEARCH RESULTS:\n{clean_research}"
+
         response = client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=2500,
             system=system_prompt,
-            messages=[{"role": "user", "content": user_message}],
+            messages=[{"role": "user", "content": clean_message}],
         )
 
         text = response.content[0].text.strip()
-        if text.startswith("```"):
-            text = "\n".join(text.split("\n")[1:])
-            if text.endswith("```"): text = text[:-3].strip()
+        # Extract JSON robustly
+        from value_creation.financial_agent import _clean_json_text
+        text = _clean_json_text(text)
 
-        data = json.loads(text)
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            return {}
 
         # Parse automation opportunities into SizedInitiatives
         automations = []

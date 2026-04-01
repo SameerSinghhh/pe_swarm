@@ -7,6 +7,7 @@ deduplicates, ranks by impact/effort, and produces the final plan.
 
 import json
 import os
+import re
 from dotenv import load_dotenv
 
 from value_creation.types import SizedInitiative
@@ -87,19 +88,22 @@ Return ONLY valid JSON:
 
     try:
         client = Anthropic()
+        clean_context = re.sub(r'[{}]', '', context_block)
         response = client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=3000,
             system=system_prompt,
-            messages=[{"role": "user", "content": context_block}],
+            messages=[{"role": "user", "content": clean_context}],
         )
 
         text = response.content[0].text.strip()
-        if text.startswith("```"):
-            text = "\n".join(text.split("\n")[1:])
-            if text.endswith("```"): text = text[:-3].strip()
+        from value_creation.financial_agent import _clean_json_text
+        text = _clean_json_text(text)
 
-        data = json.loads(text)
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            return _fallback_synthesis(financial_output, ai_output, strategic_output)
 
         # Parse prioritized plan
         plan = []
